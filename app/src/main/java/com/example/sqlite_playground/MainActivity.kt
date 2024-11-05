@@ -11,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.TextField
+import androidx.compose.ui.platform.LocalContext
+import com.example.sqlite_playground.db.DatabaseHelper
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +25,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen() {
-    var name by remember { mutableStateOf("") }
+/*    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var users by remember { mutableStateOf(listOf<User>()) }
 
@@ -56,7 +58,7 @@ fun MainScreen() {
         users.forEach { user ->
             Text(text = "${user.name} - ${user.email}")
         }
-    }
+  }*/
 }
 
 @Preview(showBackground = true)
