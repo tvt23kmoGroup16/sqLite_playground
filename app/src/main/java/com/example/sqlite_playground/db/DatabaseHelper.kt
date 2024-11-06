@@ -66,21 +66,22 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun getUserScore(userId: Long): Int? {
         val db = this.readableDatabase
         var highScore: Int? = null
-        val query = "SELECT MAX(${HighScoreContract.HighScoreEntry.COLUMN_NAME_SCORE}) AS HighScore " +
+        val query = "SELECT MAX(${HighScoreContract.HighScoreEntry.COLUMN_NAME_SCORE}) AS HighScore " + //Select using MAX for highscore
                     "FROM ${HighScoreContract.HighScoreEntry.TABLE_NAME} " +
                     "WHERE ${HighScoreContract.HighScoreEntry.COLUMN_NAME_USER_ID} = ?"
 
         val cursor = db.rawQuery(query, arrayOf(userId.toString()))
         try {
-            if (cursor.moveToFirst()) {
+            if (cursor.moveToFirst()) { //Check for any results
                 highScore = cursor.getInt(cursor.getColumnIndexOrThrow("HighScore"))
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error retrieving high score: ", e)
         } finally {
+            //Close cursor and db to free resources
             cursor.close()
             db.close()
         }
-        return highScore
+        return highScore //Return high score if found, else return null
     }
 }
