@@ -9,7 +9,7 @@ The **SQLite Playground** is an Android application designed to demonstrate the 
 - User authentication with secure password storage (optional).
 - Ability to track user scores and levels.
 - High scores leaderboard to display top players.
-- Support for multiple tables including users, levels, and high scores.
+- Support for multiple tables including users, levels, settings and high scores.
 
 ## Getting Started
 
