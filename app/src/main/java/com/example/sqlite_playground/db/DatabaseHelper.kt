@@ -3,12 +3,14 @@ package com.example.sqlite_playground.db
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
         const val DATABASE_NAME = "UserDatabase.db"
         const val DATABASE_VERSION = 1 //version control
+        const val TAG = "DatabaseHelper"
     }
     //Creating the users table using SQL statements:
     private val SQL_CREATE_USERS_TABLE =
@@ -39,5 +41,46 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL(SQL_DELETE_USERS_TABLE) // Deleting the old users table
         //other delete old versions here...
         onCreate(db) // Recreating all tables
+    }
+
+    fun resetDatabase() {
+        val db = this.writableDatabase
+        db.beginTransaction()
+        try {
+            //Delete rows
+            db.delete("Users", null, null)
+            db.delete("Levels", null, null)
+            db.delete("HighScores", null, null)
+            db.delete("Settings", null, null)
+
+            db.setTransactionSuccessful() //Commit if all succeeded
+            Log.d(TAG, "Database reset: Data cleared")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error resetting database: ", e)
+        } finally {
+            db.endTransaction() //Commit or rollback
+            db.close()
+        }
+    }
+
+    fun getUserScore(userId: Long): Int? {
+        val db = this.readableDatabase
+        var highScore: Int? = null
+        val query = "SELECT MAX(${HighScoreContract.HighScoreEntry.COLUMN_NAME_SCORE}) AS HighScore " +
+                    "FROM ${HighScoreContract.HighScoreEntry.TABLE_NAME} " +
+                    "WHERE ${HighScoreContract.HighScoreEntry.COLUMN_NAME_USER_ID} = ?"
+
+        val cursor = db.rawQuery(query, arrayOf(userId.toString()))
+        try {
+            if (cursor.moveToFirst()) {
+                highScore = cursor.getInt(cursor.getColumnIndexOrThrow("HighScore"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error retrieving high score: ", e)
+        } finally {
+            cursor.close()
+            db.close()
+        }
+        return highScore
     }
 }
