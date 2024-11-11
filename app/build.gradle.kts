@@ -2,14 +2,15 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.devtools.ksp") version "2.0.21-1.0.25"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.21"
 }
 
 android {
-    namespace = "com.example.sqlite_playground"
+    namespace = "com.example.sqLite_playground"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.sqlite_playground"
+        applicationId = "com.example.sqLite_playground"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -60,8 +61,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.support.annotations)
-    implementation(libs.androidx.annotation)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
