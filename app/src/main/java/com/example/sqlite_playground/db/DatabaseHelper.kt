@@ -3,6 +3,8 @@ package com.example.sqlite_playground.db
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 
 
@@ -12,8 +14,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val DATABASE_VERSION = 1 //version control
         const val TAG = "DatabaseHelper"
     }
+
     //Creating the users table using SQL statements:
-    private val SQL_CREATE_USERS_TABLE =
+    private val sqlCreateUsersTable =
         "CREATE TABLE ${UserContract.UserEntry.TABLE_NAME} (" +
                 "${UserContract.UserEntry.COLUMN_NAME_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "${UserContract.UserEntry.COLUMN_NAME_USERNAME} TEXT NOT NULL," +
@@ -23,26 +26,70 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 "${UserContract.UserEntry.COLUMN_NAME_SCORE} INTEGER," +
                 "${UserContract.UserEntry.COLUMN_NAME_LEVEL} INTEGER)"
 
-    // Other tables here accordingly...
+    // Other tables here accordingly
+
+    private val sqlCreateLevelsTable =
+        "CREATE TABLE ${LevelContract.LevelEntry.TABLE_NAME} (" +
+                "${LevelContract.LevelEntry.COLUMN_NAME_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "${LevelContract.LevelEntry.COLUMN_NAME_LEVEL_NUMBER} INTEGER NOT NULL," +
+                "${LevelContract.LevelEntry.COLUMN_NAME_LEVEL_NAME} TEXT NOT NULL UNIQUE," +
+                "${LevelContract.LevelEntry.COLUMN_NAME_DIFFICULTY} INTEGER NOT NULL," +
+                "${LevelContract.LevelEntry.COLUMN_NAME_REQUIRED_SCORE} INTEGER NOT NULL)"
+
+    private val sqlCreateSettingsTable =
+        "CREATE TABLE ${SettingsContract.SettingsEntry.TABLE_NAME} (" +
+                "${SettingsContract.SettingsEntry.COLUMN_NAME_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "${SettingsContract.SettingsEntry.COLUMN_NAME_USER_ID} INTEGER NOT NULL," +
+                "${SettingsContract.SettingsEntry.COLUMN_NAME_MUSIC_ENABLED} INTEGER NOT NULL," +
+                "FOREIGN KEY (${SettingsContract.SettingsEntry.COLUMN_NAME_USER_ID}) " +
+                "REFERENCES ${UserContract.UserEntry.TABLE_NAME} (${UserContract.UserEntry.COLUMN_NAME_ID}))"
+
+    private val sqlCreateHighScoresTable =
+        "CREATE TABLE ${HighScoreContract.HighScoreEntry.TABLE_NAME} (" +
+                "${HighScoreContract.HighScoreEntry.COLUMN_NAME_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "${HighScoreContract.HighScoreEntry.COLUMN_NAME_USER_ID} INTEGER NOT NULL," +
+                "${HighScoreContract.HighScoreEntry.COLUMN_NAME_SCORE} INTEGER NOT NULL," +
+                "${HighScoreContract.HighScoreEntry.COLUMN_NAME_LEVEL} INTEGER NOT NULL," +
+                "${HighScoreContract.HighScoreEntry.COLUMN_NAME_DATE} DATETIME NOT NULL," +
+                "FOREIGN KEY (${HighScoreContract.HighScoreEntry.COLUMN_NAME_USER_ID}) " +
+                "REFERENCES ${UserContract.UserEntry.TABLE_NAME} (${UserContract.UserEntry.COLUMN_NAME_ID}))"
+
 
     // Deleting the users table
-    private val SQL_DELETE_USERS_TABLE =
+    private val sqlDeleteUsersTable =
         "DROP TABLE IF EXISTS ${UserContract.UserEntry.TABLE_NAME}"
+
     //Other deletions here...
+    private val sqlDeleteLevelsTable =
+        "DROP TABLE IF EXISTS ${LevelContract.LevelEntry.TABLE_NAME}"
+    private val sqlDeleteSettingsTable =
+        "DROP TABLE IF EXISTS ${SettingsContract.SettingsEntry.TABLE_NAME}"
+    private val sqlDeleteHighScoresTable =
+        "DROP TABLE IF EXISTS ${HighScoreContract.HighScoreEntry.TABLE_NAME}"
+
 
     // Creating tables
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL(SQL_CREATE_USERS_TABLE) // Creating the users table
-    //other table creations here...
+        db.execSQL(sqlCreateUsersTable) // Creating the users table
+        // other table creations here..
+        db.execSQL(sqlCreateLevelsTable) // Creating the levels table
+        db.execSQL(sqlCreateSettingsTable) // Creating the settings table
+        db.execSQL(sqlCreateHighScoresTable) // Creating the highScores table
     }
 
     //Version control: upgrading tables
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL(SQL_DELETE_USERS_TABLE) // Deleting the old users table
+        db.execSQL(sqlDeleteUsersTable) // Deleting the old users table
         //other delete old versions here...
+        db.execSQL(sqlDeleteLevelsTable)
+        db.execSQL(sqlDeleteSettingsTable)
+        db.execSQL(sqlDeleteHighScoresTable)
+
         onCreate(db) // Recreating all tables
     }
 
+    /*deletes databases but does not reset auto-increments,
+    if you want to delete auto-increments, drop tables and recreate them*/
     fun resetDatabase() {
         val db = this.writableDatabase
         db.beginTransaction()
@@ -66,7 +113,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun getUserScore(userId: Long): Int? {
         val db = this.readableDatabase
         var highScore: Int? = null
-        val query = "SELECT MAX(${HighScoreContract.HighScoreEntry.COLUMN_NAME_SCORE}) AS HighScore " + //Select using MAX for highscore
+        val query =
+            "SELECT MAX(${HighScoreContract.HighScoreEntry.COLUMN_NAME_SCORE}) AS HighScore " + //Select using MAX for highScore
                     "FROM ${HighScoreContract.HighScoreEntry.TABLE_NAME} " +
                     "WHERE ${HighScoreContract.HighScoreEntry.COLUMN_NAME_USER_ID} = ?"
 
@@ -85,3 +133,4 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return highScore //Return high score if found, else return null
     }
 }
+
