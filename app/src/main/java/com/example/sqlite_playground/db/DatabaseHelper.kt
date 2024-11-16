@@ -87,7 +87,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     /*deletes databases but does not reset auto-increments,
-    if you want to delete auto-increments, drop tables and recreate them*/
+    if you want to delete auto-increments, drop tables and recreate them and do it inside this function*/
     fun resetDatabase() {
         val db = this.writableDatabase
         db.beginTransaction()
