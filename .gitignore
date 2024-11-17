@@ -1,3 +1,5 @@
+/app/build/
+
 /build/
 
 # Gradle files
@@ -33,7 +35,3 @@ google-services.json
 
 # Android Profiling
 *.hprof
-
-app/build/
-
-app/build.gradle.kts
