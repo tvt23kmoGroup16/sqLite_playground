@@ -5,7 +5,6 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
-
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
         const val DATABASE_NAME = "UserDatabase.db"
@@ -65,6 +64,23 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     private val sqlDeleteHighScoresTable =
         "DROP TABLE IF EXISTS ${HighScoreContract.HighScoreEntry.TABLE_NAME}"
 
+    data class User(
+        val id: Long,
+        val username: String,
+        val email: String,
+        val passwordHash: String,
+        val lastLogin: String?,
+        val score: Int?,
+        val level: Long
+    )
+
+    data class Level(
+        val id: Long,
+        val levelNumber: Int,
+        val levelName: String,
+        val difficulty: Int,
+        val requiredScore: Int
+    )
 
     // Creating tables
     override fun onCreate(db: SQLiteDatabase) {
@@ -130,5 +146,68 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
         return highScore //Return high score if found, else return null
     }
+
+    fun getUsersByLevel(levelId: Long): List<User> {
+        val db = this.readableDatabase
+        val userList = mutableListOf<User>()
+        val query =
+            "SELECT * FROM ${UserContract.UserEntry.TABLE_NAME} " +
+                    "WHERE ${UserContract.UserEntry.COLUMN_NAME_LEVEL} = ?"
+
+        val cursor = db.rawQuery(query, arrayOf(levelId.toString()))
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    val user = User( //Create a User object for each row found
+                        id = cursor.getLong(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_ID)),
+                        username = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_USERNAME)),
+                        email = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_EMAIL)),
+                        passwordHash = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_PASSWORD_HASH)),
+                        lastLogin = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_LAST_LOGIN)),
+                        score = cursor.getInt(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_SCORE)),
+                        level = cursor.getLong(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_LEVEL))
+                    )
+                    userList.add(user)
+                } while (cursor.moveToNext())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error retrieving users by level: ", e)
+        } finally {
+            cursor.close()
+            db.close()
+        }
+        return userList //Return list of users associated with the given level
+    }
+
+    fun getLevelsByScore(minScore: Int): List<Level> {
+        val db = this.readableDatabase
+        val levelList = mutableListOf<Level>()
+        val query =
+            "SELECT * FROM ${LevelContract.LevelEntry.TABLE_NAME} " +
+                    "WHERE ${LevelContract.LevelEntry.COLUMN_NAME_REQUIRED_SCORE} > ?"
+
+        val cursor = db.rawQuery(query, arrayOf(minScore.toString()))
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    val level = Level( //Create a Level object for each row found
+                        id = cursor.getLong(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_NAME_ID)),
+                        levelNumber = cursor.getInt(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_NAME_LEVEL_NUMBER)),
+                        levelName = cursor.getString(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_NAME_LEVEL_NAME)),
+                        difficulty = cursor.getInt(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_NAME_DIFFICULTY)),
+                        requiredScore = cursor.getInt(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_NAME_REQUIRED_SCORE))
+                    )
+                    levelList.add(level)
+                } while (cursor.moveToNext())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error retrieving levels by score: ", e)
+        } finally {
+            cursor.close()
+            db.close()
+        }
+        return levelList //Return list of levels that require a greater score than the provided minimum score
+    }
+
 }
 
