@@ -10,16 +10,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.sqlite_playground.db.DatabaseHelper
-import com.example.sqlite_playground.db.UserModel
+import com.example.sqlite_playground.db.models.User
+import com.example.sqlite_playground.db.repositories.UserRepository
 
 @Composable
 fun ViewAllUsersScreen(navController: NavHostController) {
-    var users by remember { mutableStateOf(listOf<UserModel>()) }
+    var users by remember { mutableStateOf(listOf<User>()) }
+    val context = LocalContext.current
+    val dbHelper = DatabaseHelper(context)
+    val userRepository = UserRepository(dbHelper)
 
-    val dbHelper = DatabaseHelper(LocalContext.current)
 
     LaunchedEffect(Unit) {
-        users = dbHelper.getAllUsers()
+        users = userRepository.getAllUsers()
     }
 
     Column(
@@ -44,15 +47,14 @@ fun ViewAllUsersScreen(navController: NavHostController) {
 }
 
 @Composable
-fun UserItem(user: UserModel) {
+fun UserItem(user: User) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     ) {
         Text(text = "ID: ${user.id}", style = MaterialTheme.typography.bodyMedium)
-        Text(text = "Name: ${user.name}", style = MaterialTheme.typography.bodyLarge)
+        Text(text = "Name: ${user.username}", style = MaterialTheme.typography.bodyLarge)
         Text(text = "Email: ${user.email}", style = MaterialTheme.typography.bodyMedium)
-        Divider()
     }
 }
