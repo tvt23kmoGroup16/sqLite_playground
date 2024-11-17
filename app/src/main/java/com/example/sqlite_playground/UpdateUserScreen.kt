@@ -11,8 +11,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import at.favre.lib.crypto.bcrypt.BCrypt // Lisää tämä import
+import at.favre.lib.crypto.bcrypt.BCrypt
 import com.example.sqlite_playground.db.DatabaseHelper
+import com.example.sqlite_playground.db.repositories.UserRepository
 
 @Composable
 fun UpdateUserScreen(navController: NavHostController) {
@@ -23,6 +24,7 @@ fun UpdateUserScreen(navController: NavHostController) {
 
     val context = LocalContext.current
     val dbHelper = DatabaseHelper(context)
+    val userRepository = UserRepository(dbHelper)
 
     Column(
         modifier = Modifier
@@ -80,8 +82,8 @@ fun UpdateUserScreen(navController: NavHostController) {
                 if (id != null && name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
                     val hashedPassword = BCrypt.withDefaults().hashToString(12, password.toCharArray())
                     val lastLogin = System.currentTimeMillis()
-                    val success = dbHelper.updateUser(id, name, email, hashedPassword, lastLogin)
-                    if (success) {
+                    val result = userRepository.updateUser(id, name, email, hashedPassword, lastLogin)
+                    if (result > 0) {
                         Toast.makeText(context, "User updated successfully!", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     } else {

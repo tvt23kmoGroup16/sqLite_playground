@@ -1,6 +1,7 @@
 package com.example.sqlite_playground
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -13,9 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.sqlite_playground.db.DatabaseHelper
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-
+import com.example.sqlite_playground.db.models.User
+import com.example.sqlite_playground.db.repositories.UserRepository
 
 
 class MainActivity : ComponentActivity() {
@@ -33,7 +33,15 @@ fun MainScreen() {
     var email by remember { mutableStateOf("")}
     var password by remember { mutableStateOf("")}
     val dbHelper = DatabaseHelper(LocalContext.current)
-    var users by remember { mutableStateOf(listOf("UserTable")) }
+    val userRepository = UserRepository(dbHelper)
+    var users by remember { mutableStateOf(listOf<User>()) } // A list of User objects, not strings
+    val context = LocalContext.current
+
+
+    // Function to refresh user list
+    fun refreshUserList() {
+        users = userRepository.getAllUsers() // Fetch users
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TextField(
@@ -55,20 +63,32 @@ fun MainScreen() {
 
         Button(onClick = {
             if (name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
-                val lastlogin = "LocalDateTime.now()" //<----------Attempting to save the latest login when creating user? Better ideas how to do this?
-                dbHelper.addUser(name, email, password, lastlogin)
+                val lastLogin = System.currentTimeMillis() // using System.currentTimeMillis for the TimeStamp
+
+               val userId = userRepository.insertUser(name, email, password, lastLogin)
+
+                if(userId > 0) {
                 name = ""
                 email = ""
                 password = ""
-                users = dbHelper.getAllUsers() // Refreshing list of users
+                refreshUserList()
+                users = userRepository.getAllUsers() // Refreshing list of users
+                Toast.makeText(context, "User added successfully!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Error adding user.", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, "Please fill all fields.", Toast.LENGTH_SHORT).show()
             }
         }) {
-            Text("User Added Successfully!") //Gz
+            Text("Add User")
         }
 
         //Display all users when called
         Text(text = "Users:")
-        users.forEach { _ -> Text(text = "$name - $email") }
+        users.forEach { user ->
+            Text(text = "${user.username} - ${user.email}")  //Displaying user details, let's call username and email with their parent
+        }
     }
 }
 

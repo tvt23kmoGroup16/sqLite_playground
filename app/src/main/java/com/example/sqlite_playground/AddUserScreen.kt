@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import at.favre.lib.crypto.bcrypt.BCrypt
 import com.example.sqlite_playground.db.DatabaseHelper
+import com.example.sqlite_playground.db.repositories.UserRepository
+
 
 @Composable
 fun AddUserScreen(navController: NavHostController) {
@@ -22,6 +24,7 @@ fun AddUserScreen(navController: NavHostController) {
 
     val context = LocalContext.current
     val dbHelper = DatabaseHelper(context)
+    val userRepository = UserRepository(dbHelper)
 
     Column(
         modifier = Modifier
@@ -68,8 +71,11 @@ fun AddUserScreen(navController: NavHostController) {
                 if (name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
                     val hashedPassword = BCrypt.withDefaults().hashToString(12, password.toCharArray())
                     val lastLogin = System.currentTimeMillis()
-                    val success = dbHelper.addUser(name, email, hashedPassword, lastLogin)
-                    if (success) {
+
+                    //calling the insertUser function on the instance
+                    val result = userRepository.insertUser(name, email, hashedPassword, lastLogin)
+
+                    if (result > 0) { //checking the insert
                         Toast.makeText(context, "User added successfully!", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     } else {

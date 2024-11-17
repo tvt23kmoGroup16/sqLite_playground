@@ -7,11 +7,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.sqlite_playground.db.DatabaseHelper
+import com.example.sqlite_playground.db.repositories.UserRepository
 
 @Composable
 fun DeleteUserScreen(navController: NavHostController) {
@@ -19,6 +19,7 @@ fun DeleteUserScreen(navController: NavHostController) {
 
     val context = LocalContext.current
     val dbHelper = DatabaseHelper(context)
+    val userRepository = UserRepository(dbHelper)
 
     Column(
         modifier = Modifier
@@ -42,10 +43,10 @@ fun DeleteUserScreen(navController: NavHostController) {
 
         Button(
             onClick = {
-                val id = userId.toIntOrNull()
+                val id = userId.toLongOrNull()
                 if (id != null) {
-                    val success = dbHelper.deleteUser(id)
-                    if (success) {
+                    val result = userRepository.deleteUser(id)
+                    if (result > 0 ) {
                         Toast.makeText(context, "User deleted successfully!", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     } else {

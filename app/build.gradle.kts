@@ -63,7 +63,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.support.annotations)
     implementation(libs.androidx.annotation)
-    implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation (libs.androidx.constraintlayout)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.navigation.compose)
@@ -75,6 +75,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("at.favre.lib:bcrypt:0.9.0")
+    implementation(libs.bcrypt)
 
 }

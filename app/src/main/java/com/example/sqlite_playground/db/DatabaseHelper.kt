@@ -4,6 +4,10 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import com.example.sqlite_playground.db.contracts.UserContract
+import com.example.sqlite_playground.db.contracts.LevelContract
+import com.example.sqlite_playground.db.contracts.SettingsContract
+import com.example.sqlite_playground.db.contracts.HighScoreContract
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
@@ -15,41 +19,41 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     //Creating the users table using SQL statements:
     private val sqlCreateUsersTable =
         "CREATE TABLE ${UserContract.UserEntry.TABLE_NAME} (" +
-                "${UserContract.UserEntry.COLUMN_NAME_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "${UserContract.UserEntry.COLUMN_NAME_USERNAME} TEXT NOT NULL," +
-                "${UserContract.UserEntry.COLUMN_NAME_EMAIL} TEXT NOT NULL UNIQUE," +
-                "${UserContract.UserEntry.COLUMN_NAME_PASSWORD_HASH} TEXT NOT NULL," +
-                "${UserContract.UserEntry.COLUMN_NAME_LAST_LOGIN} DATETIME," +
-                "${UserContract.UserEntry.COLUMN_NAME_SCORE} INTEGER," +
-                "${UserContract.UserEntry.COLUMN_NAME_LEVEL} INTEGER)"
+                "${UserContract.UserEntry.COLUMN_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "${UserContract.UserEntry.COLUMN_USERNAME} TEXT NOT NULL," +
+                "${UserContract.UserEntry.COLUMN_EMAIL} TEXT NOT NULL UNIQUE," +
+                "${UserContract.UserEntry.COLUMN_PASSWORD_HASH} TEXT NOT NULL," +
+                "${UserContract.UserEntry.COLUMN_LAST_LOGIN} DATETIME," +
+                "${UserContract.UserEntry.COLUMN_SCORE} INTEGER," +
+                "${UserContract.UserEntry.COLUMN_LEVEL} INTEGER)"
 
     // Other tables here accordingly
 
     private val sqlCreateLevelsTable =
         "CREATE TABLE ${LevelContract.LevelEntry.TABLE_NAME} (" +
-                "${LevelContract.LevelEntry.COLUMN_NAME_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "${LevelContract.LevelEntry.COLUMN_NAME_LEVEL_NUMBER} INTEGER NOT NULL," +
-                "${LevelContract.LevelEntry.COLUMN_NAME_LEVEL_NAME} TEXT NOT NULL UNIQUE," +
-                "${LevelContract.LevelEntry.COLUMN_NAME_DIFFICULTY} INTEGER NOT NULL," +
-                "${LevelContract.LevelEntry.COLUMN_NAME_REQUIRED_SCORE} INTEGER NOT NULL)"
+                "${LevelContract.LevelEntry.COLUMN_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "${LevelContract.LevelEntry.COLUMN_LEVEL_NUMBER} INTEGER NOT NULL," +
+                "${LevelContract.LevelEntry.COLUMN_LEVEL_NAME} TEXT NOT NULL UNIQUE," +
+                "${LevelContract.LevelEntry.COLUMN_DIFFICULTY} STRING NOT NULL," +
+                "${LevelContract.LevelEntry.COLUMN_REQUIRED_SCORE} INTEGER NOT NULL)"
 
     private val sqlCreateSettingsTable =
         "CREATE TABLE ${SettingsContract.SettingsEntry.TABLE_NAME} (" +
-                "${SettingsContract.SettingsEntry.COLUMN_NAME_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "${SettingsContract.SettingsEntry.COLUMN_NAME_USER_ID} INTEGER NOT NULL," +
-                "${SettingsContract.SettingsEntry.COLUMN_NAME_MUSIC_ENABLED} INTEGER NOT NULL," +
-                "FOREIGN KEY (${SettingsContract.SettingsEntry.COLUMN_NAME_USER_ID}) " +
-                "REFERENCES ${UserContract.UserEntry.TABLE_NAME} (${UserContract.UserEntry.COLUMN_NAME_ID}))"
+                "${SettingsContract.SettingsEntry.COLUMN_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "${SettingsContract.SettingsEntry.COLUMN_USER_ID} INTEGER NOT NULL," +
+                "${SettingsContract.SettingsEntry.COLUMN_MUSIC_ENABLED} INTEGER NOT NULL," +
+                "FOREIGN KEY (${SettingsContract.SettingsEntry.COLUMN_USER_ID}) " +
+                "REFERENCES ${UserContract.UserEntry.TABLE_NAME} (${UserContract.UserEntry.COLUMN_ID}))"
 
     private val sqlCreateHighScoresTable =
         "CREATE TABLE ${HighScoreContract.HighScoreEntry.TABLE_NAME} (" +
-                "${HighScoreContract.HighScoreEntry.COLUMN_NAME_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "${HighScoreContract.HighScoreEntry.COLUMN_NAME_USER_ID} INTEGER NOT NULL," +
-                "${HighScoreContract.HighScoreEntry.COLUMN_NAME_SCORE} INTEGER NOT NULL," +
-                "${HighScoreContract.HighScoreEntry.COLUMN_NAME_LEVEL} INTEGER NOT NULL," +
-                "${HighScoreContract.HighScoreEntry.COLUMN_NAME_DATE} DATETIME NOT NULL," +
-                "FOREIGN KEY (${HighScoreContract.HighScoreEntry.COLUMN_NAME_USER_ID}) " +
-                "REFERENCES ${UserContract.UserEntry.TABLE_NAME} (${UserContract.UserEntry.COLUMN_NAME_ID}))"
+                "${HighScoreContract.HighScoreEntry.COLUMN_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "${HighScoreContract.HighScoreEntry.COLUMN_USER_ID} INTEGER NOT NULL," +
+                "${HighScoreContract.HighScoreEntry.COLUMN_SCORE} INTEGER NOT NULL," +
+                "${HighScoreContract.HighScoreEntry.COLUMN_LEVEL} INTEGER NOT NULL," +
+                "${HighScoreContract.HighScoreEntry.COLUMN_DATE} DATETIME NOT NULL," +
+                "FOREIGN KEY (${HighScoreContract.HighScoreEntry.COLUMN_USER_ID}) " +
+                "REFERENCES ${UserContract.UserEntry.TABLE_NAME} (${UserContract.UserEntry.COLUMN_ID}))"
 
 
     // Deleting the users table
@@ -64,23 +68,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     private val sqlDeleteHighScoresTable =
         "DROP TABLE IF EXISTS ${HighScoreContract.HighScoreEntry.TABLE_NAME}"
 
-    data class User(
-        val id: Long,
-        val username: String,
-        val email: String,
-        val passwordHash: String,
-        val lastLogin: String?,
-        val score: Int?,
-        val level: Long
-    )
-
-    data class Level(
-        val id: Long,
-        val levelNumber: Int,
-        val levelName: String,
-        val difficulty: Int,
-        val requiredScore: Int
-    )
 
     // Creating tables
     override fun onCreate(db: SQLiteDatabase) {
@@ -128,9 +115,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val db = this.readableDatabase
         var highScore: Int? = null
         val query =
-            "SELECT MAX(${HighScoreContract.HighScoreEntry.COLUMN_NAME_SCORE}) AS HighScore " + //Select using MAX for highScore
+            "SELECT MAX(${HighScoreContract.HighScoreEntry.COLUMN_SCORE}) AS HighScore " + //Select using MAX for highScore
                     "FROM ${HighScoreContract.HighScoreEntry.TABLE_NAME} " +
-                    "WHERE ${HighScoreContract.HighScoreEntry.COLUMN_NAME_USER_ID} = ?"
+                    "WHERE ${HighScoreContract.HighScoreEntry.COLUMN_USER_ID} = ?"
 
         val cursor = db.rawQuery(query, arrayOf(userId.toString()))
         try {
@@ -146,68 +133,5 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
         return highScore //Return high score if found, else return null
     }
-
-    fun getUsersByLevel(levelId: Long): List<User> {
-        val db = this.readableDatabase
-        val userList = mutableListOf<User>()
-        val query =
-            "SELECT * FROM ${UserContract.UserEntry.TABLE_NAME} " +
-                    "WHERE ${UserContract.UserEntry.COLUMN_NAME_LEVEL} = ?"
-
-        val cursor = db.rawQuery(query, arrayOf(levelId.toString()))
-        try {
-            if (cursor.moveToFirst()) {
-                do {
-                    val user = User( //Create a User object for each row found
-                        id = cursor.getLong(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_ID)),
-                        username = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_USERNAME)),
-                        email = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_EMAIL)),
-                        passwordHash = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_PASSWORD_HASH)),
-                        lastLogin = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_LAST_LOGIN)),
-                        score = cursor.getInt(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_SCORE)),
-                        level = cursor.getLong(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME_LEVEL))
-                    )
-                    userList.add(user)
-                } while (cursor.moveToNext())
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error retrieving users by level: ", e)
-        } finally {
-            cursor.close()
-            db.close()
-        }
-        return userList //Return list of users associated with the given level
-    }
-
-    fun getLevelsByScore(minScore: Int): List<Level> {
-        val db = this.readableDatabase
-        val levelList = mutableListOf<Level>()
-        val query =
-            "SELECT * FROM ${LevelContract.LevelEntry.TABLE_NAME} " +
-                    "WHERE ${LevelContract.LevelEntry.COLUMN_NAME_REQUIRED_SCORE} > ?"
-
-        val cursor = db.rawQuery(query, arrayOf(minScore.toString()))
-        try {
-            if (cursor.moveToFirst()) {
-                do {
-                    val level = Level( //Create a Level object for each row found
-                        id = cursor.getLong(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_NAME_ID)),
-                        levelNumber = cursor.getInt(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_NAME_LEVEL_NUMBER)),
-                        levelName = cursor.getString(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_NAME_LEVEL_NAME)),
-                        difficulty = cursor.getInt(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_NAME_DIFFICULTY)),
-                        requiredScore = cursor.getInt(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_NAME_REQUIRED_SCORE))
-                    )
-                    levelList.add(level)
-                } while (cursor.moveToNext())
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error retrieving levels by score: ", e)
-        } finally {
-            cursor.close()
-            db.close()
-        }
-        return levelList //Return list of levels that require a greater score than the provided minimum score
-    }
-
 }
 
