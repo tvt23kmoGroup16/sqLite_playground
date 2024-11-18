@@ -8,6 +8,7 @@ import com.example.sqlite_playground.db.contracts.UserContract
 import com.example.sqlite_playground.db.contracts.LevelContract
 import com.example.sqlite_playground.db.contracts.SettingsContract
 import com.example.sqlite_playground.db.contracts.HighScoreContract
+import android.database.Cursor
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
@@ -68,6 +69,23 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     private val sqlDeleteHighScoresTable =
         "DROP TABLE IF EXISTS ${HighScoreContract.HighScoreEntry.TABLE_NAME}"
 
+    data class User(
+        val id: Long,
+        val username: String,
+        val email: String,
+        val passwordHash: String,
+        val lastLogin: String?,
+        val score: Int?,
+        val level: Long
+    )
+
+    data class Level(
+        val id: Long,
+        val levelNumber: Int,
+        val levelName: String,
+        val difficulty: Int,
+        val requiredScore: Int
+    )
 
     // Creating tables
     override fun onCreate(db: SQLiteDatabase) {
@@ -88,6 +106,17 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
         onCreate(db) // Recreating all tables
     }
+
+    fun Cursor.getStringOrNull(columnIndex: Int): String? =
+        if (isNull(columnIndex)) null else getString(columnIndex)
+
+    fun Cursor.getIntOrNull(columnIndex: Int): Int? =
+        if (isNull(columnIndex)) null else getInt(columnIndex)
+
+    fun Cursor.isNull(columnIndex: Int): Boolean =
+        getType(columnIndex) == Cursor.FIELD_TYPE_NULL
+
+
 
     /*deletes databases but does not reset auto-increments,
     if you want to delete auto-increments, drop tables and recreate them and do it inside this function*/
@@ -133,5 +162,67 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
         return highScore //Return high score if found, else return null
     }
+
+    fun getUsersByLevel(levelId: Long): List<User> {
+        val db = this.readableDatabase
+        val userList = mutableListOf<User>()
+        val query = """
+        SELECT * FROM ${UserContract.UserEntry.TABLE_NAME} 
+        WHERE ${UserContract.UserEntry.COLUMN_LEVEL} = ?"""
+        val cursor = db.rawQuery(query, arrayOf(levelId.toString()))
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    val user = User(
+                        id = cursor.getLong(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_ID)),
+                        username = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_USERNAME)),
+                        email = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_EMAIL)),
+                        passwordHash = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_PASSWORD_HASH)),
+                        lastLogin = cursor.getStringOrNull(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_LAST_LOGIN)),
+                        score = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_SCORE)),
+                        level = cursor.getLong(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_LEVEL))
+                    )
+                    userList.add(user)
+                } while (cursor.moveToNext())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error retrieving users by level: ", e)
+        } finally {
+            cursor.close()
+            db.close()
+        }
+        return userList
+    }
+
+    fun getLevelsByScore(minScore: Int): List<Level> {
+        val db = this.readableDatabase
+        val levelList = mutableListOf<Level>()
+        val query = """
+        SELECT * FROM ${LevelContract.LevelEntry.TABLE_NAME} 
+        WHERE ${LevelContract.LevelEntry.COLUMN_REQUIRED_SCORE} > ?
+    """
+        val cursor = db.rawQuery(query, arrayOf(minScore.toString()))
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    val level = Level(
+                        id = cursor.getLong(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_ID)),
+                        levelNumber = cursor.getInt(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_LEVEL_NUMBER)),
+                        levelName = cursor.getString(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_LEVEL_NAME)),
+                        difficulty = cursor.getInt(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_DIFFICULTY)),
+                        requiredScore = cursor.getInt(cursor.getColumnIndexOrThrow(LevelContract.LevelEntry.COLUMN_REQUIRED_SCORE))
+                    )
+                    levelList.add(level)
+                } while (cursor.moveToNext())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error retrieving levels by score: ", e)
+        } finally {
+            cursor.close()
+            db.close()
+        }
+        return levelList
+    }
+
 }
 
