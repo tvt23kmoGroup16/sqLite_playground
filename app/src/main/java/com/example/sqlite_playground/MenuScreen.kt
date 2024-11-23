@@ -15,48 +15,59 @@ fun MenuScreen(navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp)
     ) {
-        Text(text = "Select a menu option", style = MaterialTheme.typography.titleLarge)
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { navController.navigate("add_user") },
+        Text(
+            text = "SQLite Playground",
+            style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-        ) {
-            Text("ADD USER")
-        }
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 50.dp)
+        )
 
-        Button(
-            onClick = { navController.navigate("update_user") },
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
+                .fillMaxSize()
+                .weight(1f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("UPDATE USER")
-        }
+            Text(
+                text = "Select a menu option",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
 
-        Button(
-            onClick = { navController.navigate("delete_user") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-        ) {
-            Text("DELETE USER")
-        }
-
-        Button(
-            onClick = { navController.navigate("view_all_users") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-        ) {
-            Text("VIEW ALL USERS")
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Button(
+                    onClick = { navController.navigate("add_user_screen") },
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                ) {
+                    Text("Add User")
+                }
+                Button(
+                    onClick = { navController.navigate("update_user_screen") },
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                ) {
+                    Text("Update User")
+                }
+                Button(
+                    onClick = { navController.navigate("delete_user_screen") },
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                ) {
+                    Text("Delete User")
+                }
+                Button(
+                    onClick = { navController.navigate("view_all_users_screen") },
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                ) {
+                    Text("View All Users")
+                }
+            }
         }
     }
 }
